@@ -1,0 +1,18 @@
+# Folders
+dist
+node_modules
+
+# git
+.git
+.gitignore
+
+# Unusefull
+.DS_Store
+README.md
+
+# Docker config
+.dockerignore
+Dockerfile
+docker-compose.yaml
+docker-compose_dev.yaml
+docker-compose_prod.yaml
