@@ -1,13 +1,10 @@
 # Development mode
-
-version: "3.7"
-
 services:
   app:
     build: .
     image: public-parking_img
     volumes:
-      - .:/app
+      - ./app:/app
     working_dir: /app
     container_name: "public-parking_ctn"
     hostname: "public-parking"
