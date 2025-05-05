@@ -1,14 +1,18 @@
-# Development mode
+# Development modeversion: '3.8'
+
 services:
   app:
-    build: .
-    image: public-parking_img
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    image: "public-parking_img"
+    container_name: "public-parking_ctn"
+    hostname: "public-parking_hst"
     volumes:
       - ./app:/app
-    working_dir: /app
-    container_name: "public-parking_ctn"
-    hostname: "public-parking"
     ports:
-      - 3000:3000
-    entrypoint: ["yarn", "dev"]
+      - "3000:3000"
+    entrypoint: /bin/sh -c "yarn && yarn dev"
+
     # entrypoint: ["sh", "-c", "sleep 2073600"] for debug
