@@ -12,7 +12,7 @@ stop:
 	docker compose stop
 	
 down:
-	docker compose down --volumes --remove-orphans && docker image rm random-pass_img && rm -rf app/node_modules app/.quasar
+	docker compose down --volumes --remove-orphans && docker image rm public-parking_img && rm -rf app/node_modules app/.quasar
 
 restart:
 	docker compose restart

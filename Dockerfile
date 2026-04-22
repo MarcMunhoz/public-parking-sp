@@ -1,4 +1,4 @@
-FROM node:22-alpine AS develop-stage
+FROM node:22.22-alpine AS develop-stage
 
 LABEL author="Marcelo Munhoz <me@marcelomunhoz.com>" \
   version="1.0.0" \
