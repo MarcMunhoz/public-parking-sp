@@ -1,40 +1,62 @@
-# Public Parking App (public-parking)
+# Public Parking SP
 
-A Quasar Project
+![Status](https://img.shields.io/badge/status-in%20development-orange)
+![Quasar](https://img.shields.io/badge/Quasar-2.16+-1976D2?logo=quasar&logoColor=white)
+![Vue](https://img.shields.io/badge/Vue-3.4-42b883?logo=vuedotjs&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-06b6d4?logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ed?logo=docker&logoColor=white)
 
-## Install the dependencies
+Web application for searching public and private parking in Sao Paulo, built with Quasar + Vue 3 + TypeScript and styled with Tailwind CSS.
+
+## Stack
+
+- Quasar (CLI with Vite)
+- Vue 3
+- TypeScript
+- Tailwind CSS
+- Docker / Docker Compose
+
+## Project structure
+
+- `app/`: Quasar application source code
+- `Dockerfile`: development image
+- `docker-compose.yaml`: service definition to run the app in a container
+- `Makefile`: shortcuts for Docker workflow
+
+## Run with Docker (recommended)
+
+Prerequisite: Docker and Docker Compose installed.
+
 ```bash
-yarn
-# or
-npm install
+make dev
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+The application will be available at `http://localhost:3000`.
+
+Useful commands:
+
 ```bash
-quasar dev
+make logs
+make stop
+make start
+make restart
+make down
 ```
 
+## Run locally (without Docker)
 
-### Lint the files
+Prerequisite: Node.js and Yarn.
+
 ```bash
-yarn lint
-# or
-npm run lint
+cd app
+yarn install
+yarn dev
 ```
 
+The application will be available at `http://localhost:3000`.
 
-### Format the files
-```bash
-yarn format
-# or
-npm run format
-```
+## Notes
 
-
-### Build the app for production
-```bash
-quasar build
-```
-
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+- Project is under active development; structure and layout may change.
+- Current focus is visual experience and core navigation flows.
