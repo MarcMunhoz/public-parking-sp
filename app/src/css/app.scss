@@ -1,1 +1,25 @@
 // app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Poppins:wght@600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pp-sand: #f6efe3;
+  --pp-ink: #1f2937;
+  --pp-forest: #2e5e4e;
+  --pp-mint: #b7e0cb;
+  --pp-sunset: #e98951;
+}
+
+body {
+  color: var(--pp-ink);
+  background:
+    radial-gradient(circle at 15% 20%, #fff3dc 0%, rgba(255, 243, 220, 0) 45%),
+    radial-gradient(circle at 90% 10%, #d7f0e2 0%, rgba(215, 240, 226, 0) 40%),
+    linear-gradient(180deg, #fdf8f0 0%, #f5f7f1 100%);
+}
+
+.glass-panel {
+  @apply rounded-3xl border border-white/50 bg-white/75 shadow-xl shadow-slate-900/10 backdrop-blur-lg;
+}
