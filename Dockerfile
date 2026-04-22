@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY ["./app/package.json", "./app/yarn.lock", "./"]
 
-RUN apk add exa \
+RUN apk add eza \
   && yarn global add @quasar/cli \
   && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /usr/share/man
 
