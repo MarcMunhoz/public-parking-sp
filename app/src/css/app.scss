@@ -1,8 +1,5 @@
 // app global css in SCSS form
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Poppins:wght@600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --pp-sand: #f6efe3;
@@ -21,5 +18,9 @@ body {
 }
 
 .glass-panel {
-  @apply rounded-3xl border border-white/50 bg-white/75 shadow-xl shadow-slate-900/10 backdrop-blur-lg;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(16px);
 }
