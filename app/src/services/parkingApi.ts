@@ -1,5 +1,5 @@
 import type { Coordinates, ParkingSpot } from 'src/components/models';
-import { apiConnections, requestNominatim, requestOverpass } from 'boot/api';
+import { apiClient } from 'src/services/apiClient';
 
 type NominatimEntry = {
   lat: string;
@@ -135,14 +135,14 @@ const mapElementToParkingSpot = (
 export const reverseGeocodeAddress = async (
   coordinates: Coordinates
 ): Promise<string | null> => {
-  const url = new URL(apiConnections.nominatimReverseUrl);
+  const url = new URL(apiClient.connections.nominatimReverseUrl);
   url.searchParams.set('lat', String(coordinates.lat));
   url.searchParams.set('lon', String(coordinates.lng));
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('zoom', '18');
   url.searchParams.set('addressdetails', '1');
 
-  const response = await requestNominatim(url);
+  const response = await apiClient.requestNominatim(url);
 
   if (!response.ok) {
     return null;
@@ -232,13 +232,13 @@ const buildByIdQuery = (osmType: ParkingSpot['osmType'], id: string): string => 
 };
 
 export const geocodeAddress = async (address: string): Promise<Coordinates | null> => {
-  const url = new URL(apiConnections.nominatimSearchUrl);
+  const url = new URL(apiClient.connections.nominatimSearchUrl);
   url.searchParams.set('q', `${address}, São Paulo, Brasil`);
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('limit', '1');
   url.searchParams.set('addressdetails', '1');
 
-  const response = await requestNominatim(url);
+  const response = await apiClient.requestNominatim(url);
 
   if (!response.ok) {
     throw new Error('Falha ao geocodificar endereço.');
@@ -261,7 +261,7 @@ export const searchNearbyParking = async (
   origin: Coordinates,
   radiusMeters = 1500
 ): Promise<ParkingSpot[]> => {
-  const response = await requestOverpass(buildNearbyQuery(origin, radiusMeters));
+  const response = await apiClient.requestOverpass(buildNearbyQuery(origin, radiusMeters));
 
   if (!response.ok) {
     throw new Error('Falha ao consultar estacionamentos.');
@@ -282,7 +282,7 @@ export const getParkingSpotById = async (
   osmType: ParkingSpot['osmType'],
   origin?: Coordinates
 ): Promise<ParkingSpot | null> => {
-  const response = await requestOverpass(buildByIdQuery(osmType, id));
+  const response = await apiClient.requestOverpass(buildByIdQuery(osmType, id));
 
   if (!response.ok) {
     throw new Error('Falha ao carregar detalhes do parking.');
