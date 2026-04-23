@@ -1,8 +1,20 @@
-export interface Todo {
-  id: number;
-  content: string;
-}
+export type Coordinates = {
+  lat: number;
+  lng: number;
+};
 
-export interface Meta {
-  totalCount: number;
-}
+export type ParkingSpot = {
+  id: string;
+  osmType: 'node' | 'way' | 'relation';
+  name: string;
+  address: string;
+  distanceMeters: number;
+  distanceLabel: string;
+  availability: number;
+  rating: number;
+  hourPrice: string;
+  latitude: number;
+  longitude: number;
+  source: 'public' | 'private';
+  tags: Record<string, string>;
+};

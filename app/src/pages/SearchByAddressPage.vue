@@ -189,12 +189,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import type { Coordinates, ParkingSpot } from 'src/components/models';
 import {
   geocodeAddress,
   reverseGeocodeAddress,
-  searchNearbyParking,
-  type Coordinates,
-  type ParkingSpot
+  searchNearbyParking
 } from 'src/services/parkingApi';
 
 const router = useRouter();
@@ -258,11 +257,13 @@ function goToDetails(spot: ParkingSpot) {
 }
 
 async function loadNearby(origin: Coordinates) {
+  // Overpass API expects radius in meters.
   spots.value = await searchNearbyParking(origin, Math.round(radiusKm * 1000));
   persistState();
 }
 
 function persistState() {
+  // Keep the last search context when navigating to details and back.
   const payload: SearchState = {
     address: address.value,
     errorMessage: errorMessage.value,
@@ -280,6 +281,7 @@ function restoreState() {
   }
 
   try {
+    // Runtime guards avoid invalid restored payloads from old/corrupted sessions.
     const parsed = JSON.parse(raw) as Partial<SearchState>;
     address.value = typeof parsed.address === 'string' ? parsed.address : '';
     errorMessage.value = typeof parsed.errorMessage === 'string' ? parsed.errorMessage : '';
@@ -343,6 +345,7 @@ async function useCurrentLocation() {
   isLoadingLocation.value = true;
 
   try {
+    // Wrap callback-based geolocation API into a Promise for async/await flow.
     const coordinates = await new Promise<Coordinates>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => resolve({ lat: coords.latitude, lng: coords.longitude }),

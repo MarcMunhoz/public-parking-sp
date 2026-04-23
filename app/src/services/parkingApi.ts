@@ -1,23 +1,5 @@
-export type Coordinates = {
-  lat: number;
-  lng: number;
-};
-
-export type ParkingSpot = {
-  id: string;
-  osmType: 'node' | 'way' | 'relation';
-  name: string;
-  address: string;
-  distanceMeters: number;
-  distanceLabel: string;
-  availability: number;
-  rating: number;
-  hourPrice: string;
-  latitude: number;
-  longitude: number;
-  source: 'public' | 'private';
-  tags: Record<string, string>;
-};
+import type { Coordinates, ParkingSpot } from 'src/components/models';
+import { apiConnections, requestNominatim, requestOverpass } from 'boot/api';
 
 type NominatimEntry = {
   lat: string;
@@ -38,15 +20,12 @@ type OverpassResponse = {
   elements?: OverpassElement[];
 };
 
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-
 function toRad(value: number): number {
   return (value * Math.PI) / 180;
 }
 
 function calculateDistanceMeters(origin: Coordinates, target: Coordinates): number {
+  // Haversine formula over a spherical Earth approximation.
   const earthRadius = 6371000;
   const dLat = toRad(target.lat - origin.lat);
   const dLng = toRad(target.lng - origin.lng);
@@ -110,9 +89,11 @@ function toHourPrice(tags: Record<string, string>): string {
 function toAvailability(tags: Record<string, string>, id: number): number {
   const capacity = Number(tags.capacity);
   if (Number.isFinite(capacity) && capacity > 0) {
+    // Conservative estimate of free spots based on declared capacity.
     return Math.max(1, Math.round(capacity * 0.35));
   }
 
+  // Stable pseudo-random fallback to keep the UI deterministic.
   return 8 + (id % 37);
 }
 
@@ -149,19 +130,14 @@ function mapElementToParkingSpot(element: OverpassElement, origin: Coordinates):
 }
 
 export async function reverseGeocodeAddress(coordinates: Coordinates): Promise<string | null> {
-  const url = new URL(NOMINATIM_REVERSE_URL);
+  const url = new URL(apiConnections.nominatimReverseUrl);
   url.searchParams.set('lat', String(coordinates.lat));
   url.searchParams.set('lon', String(coordinates.lng));
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('zoom', '18');
   url.searchParams.set('addressdetails', '1');
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      Accept: 'application/json',
-      'Accept-Language': 'pt-BR'
-    }
-  });
+  const response = await requestNominatim(url);
 
   if (!response.ok) {
     return null;
@@ -201,6 +177,7 @@ async function enrichMissingAddresses(spots: ParkingSpot[]): Promise<ParkingSpot
     .map((spot, index) => ({ spot, index }))
     .filter(({ spot }) => !spot.address.trim())
     .slice(0, 10);
+  // Limit reverse geocoding calls to reduce latency and API pressure.
 
   if (missingAddressIndexes.length === 0) {
     return spots;
@@ -229,6 +206,7 @@ async function enrichMissingAddresses(spots: ParkingSpot[]): Promise<ParkingSpot
 }
 
 function buildNearbyQuery(origin: Coordinates, radiusMeters: number): string {
+  // Query parking as node/way/relation in one round-trip.
   return `
     [out:json][timeout:25];
     (
@@ -249,18 +227,13 @@ function buildByIdQuery(osmType: ParkingSpot['osmType'], id: string): string {
 }
 
 export async function geocodeAddress(address: string): Promise<Coordinates | null> {
-  const url = new URL(NOMINATIM_URL);
+  const url = new URL(apiConnections.nominatimSearchUrl);
   url.searchParams.set('q', `${address}, São Paulo, Brasil`);
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('limit', '1');
   url.searchParams.set('addressdetails', '1');
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      Accept: 'application/json',
-      'Accept-Language': 'pt-BR'
-    }
-  });
+  const response = await requestNominatim(url);
 
   if (!response.ok) {
     throw new Error('Falha ao geocodificar endereço.');
@@ -283,16 +256,7 @@ export async function searchNearbyParking(
   origin: Coordinates,
   radiusMeters = 1500
 ): Promise<ParkingSpot[]> {
-  const response = await fetch(OVERPASS_URL, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    },
-    body: new URLSearchParams({
-      data: buildNearbyQuery(origin, radiusMeters)
-    })
-  });
+  const response = await requestOverpass(buildNearbyQuery(origin, radiusMeters));
 
   if (!response.ok) {
     throw new Error('Falha ao consultar estacionamentos.');
@@ -304,6 +268,7 @@ export async function searchNearbyParking(
     .filter((spot): spot is ParkingSpot => spot !== null)
     .sort((left, right) => left.distanceMeters - right.distanceMeters);
 
+  // Address enrichment runs after sorting so the list order stays stable.
   return enrichMissingAddresses(spots);
 }
 
@@ -312,16 +277,7 @@ export async function getParkingSpotById(
   osmType: ParkingSpot['osmType'],
   origin?: Coordinates
 ): Promise<ParkingSpot | null> {
-  const response = await fetch(OVERPASS_URL, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    },
-    body: new URLSearchParams({
-      data: buildByIdQuery(osmType, id)
-    })
-  });
+  const response = await requestOverpass(buildByIdQuery(osmType, id));
 
   if (!response.ok) {
     throw new Error('Falha ao carregar detalhes do estacionamento.');
@@ -335,6 +291,7 @@ export async function getParkingSpotById(
   }
 
   const fallbackOrigin: Coordinates = origin ?? {
+    // Use element coordinates (or São Paulo center) when no origin is provided.
     lat: element.lat ?? element.center?.lat ?? -23.5505,
     lng: element.lon ?? element.center?.lon ?? -46.6333
   };

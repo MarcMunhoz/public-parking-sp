@@ -124,7 +124,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
-import { getParkingSpotById, type ParkingSpot } from 'src/services/parkingApi';
+import type { ParkingSpot } from 'src/components/models';
+import { getParkingSpotById } from 'src/services/parkingApi';
 
 const $q = useQuasar();
 const route = useRoute();
@@ -143,6 +144,7 @@ const navigationLink = computed(() => {
 });
 
 function parseOsmType(value: unknown): ParkingSpot['osmType'] | null {
+  // Accept only known OSM primitives used by Overpass queries.
   if (value === 'node' || value === 'way' || value === 'relation') {
     return value;
   }
@@ -156,6 +158,7 @@ function toNumberOrNull(value: unknown): number | null {
 }
 
 function loadFromQuery(): ParkingSpot | null {
+  // Hydrate details directly from route query to avoid an extra network call.
   const id = String(route.params.id);
   const osmType = parseOsmType(route.query.osmType);
   const lat = toNumberOrNull(route.query.lat);
@@ -218,6 +221,7 @@ onMounted(async () => {
     return;
   }
 
+  // Fallback to API when the page is opened directly without query payload.
   const id = String(route.params.id);
   const osmType = parseOsmType(route.query.osmType);
   if (!osmType) {
