@@ -20,11 +20,11 @@ type OverpassResponse = {
   elements?: OverpassElement[];
 };
 
-function toRad(value: number): number {
+const toRad = (value: number): number => {
   return (value * Math.PI) / 180;
-}
+};
 
-function calculateDistanceMeters(origin: Coordinates, target: Coordinates): number {
+const calculateDistanceMeters = (origin: Coordinates, target: Coordinates): number => {
   // Haversine formula over a spherical Earth approximation.
   const earthRadius = 6371000;
   const dLat = toRad(target.lat - origin.lat);
@@ -37,17 +37,17 @@ function calculateDistanceMeters(origin: Coordinates, target: Coordinates): numb
       Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadius * c;
-}
+};
 
-function formatDistance(distanceMeters: number): string {
+const formatDistance = (distanceMeters: number): string => {
   if (distanceMeters < 1000) {
     return `${Math.round(distanceMeters)} m`;
   }
 
   return `${(distanceMeters / 1000).toFixed(1)} km`;
-}
+};
 
-function parseAddress(tags: Record<string, string>): string {
+const parseAddress = (tags: Record<string, string>): string => {
   const street = tags['addr:street'];
   const houseNumber = tags['addr:housenumber'];
   const neighborhood = tags['addr:suburb'] || tags['addr:neighbourhood'];
@@ -58,22 +58,22 @@ function parseAddress(tags: Record<string, string>): string {
   const fallback = tags.operator || tags.description || '';
 
   return [streetLine, regionLine].filter(Boolean).join(' | ') || fallback;
-}
+};
 
-function buildName(element: OverpassElement, tags: Record<string, string>): string {
+const buildName = (element: OverpassElement, tags: Record<string, string>): string => {
   if (tags.name) {
     return tags.name;
   }
 
   if (tags.operator) {
-    return `Estacionamento ${tags.operator}`;
+    return `parking ${tags.operator}`;
   }
 
   const access = tags.access === 'private' ? 'Privado' : 'Público';
-  return `Estacionamento ${access}`;
-}
+  return `parking ${access}`;
+};
 
-function toHourPrice(tags: Record<string, string>): string {
+const toHourPrice = (tags: Record<string, string>): string => {
   const fee = tags.fee?.trim();
   if (!fee || fee.toLowerCase() === 'no') {
     return 'Grátis';
@@ -84,9 +84,9 @@ function toHourPrice(tags: Record<string, string>): string {
   }
 
   return fee;
-}
+};
 
-function toAvailability(tags: Record<string, string>, id: number): number {
+const toAvailability = (tags: Record<string, string>, id: number): number => {
   const capacity = Number(tags.capacity);
   if (Number.isFinite(capacity) && capacity > 0) {
     // Conservative estimate of free spots based on declared capacity.
@@ -95,13 +95,16 @@ function toAvailability(tags: Record<string, string>, id: number): number {
 
   // Stable pseudo-random fallback to keep the UI deterministic.
   return 8 + (id % 37);
-}
+};
 
-function toRating(id: number): number {
+const toRating = (id: number): number => {
   return Number((3.6 + (id % 14) / 10).toFixed(1));
-}
+};
 
-function mapElementToParkingSpot(element: OverpassElement, origin: Coordinates): ParkingSpot | null {
+const mapElementToParkingSpot = (
+  element: OverpassElement,
+  origin: Coordinates
+): ParkingSpot | null => {
   const lat = element.lat ?? element.center?.lat;
   const lng = element.lon ?? element.center?.lon;
   const tags = element.tags ?? {};
@@ -127,9 +130,11 @@ function mapElementToParkingSpot(element: OverpassElement, origin: Coordinates):
     source: tags.access === 'private' || tags.private === 'yes' ? 'private' : 'public',
     tags
   };
-}
+};
 
-export async function reverseGeocodeAddress(coordinates: Coordinates): Promise<string | null> {
+export const reverseGeocodeAddress = async (
+  coordinates: Coordinates
+): Promise<string | null> => {
   const url = new URL(apiConnections.nominatimReverseUrl);
   url.searchParams.set('lat', String(coordinates.lat));
   url.searchParams.set('lon', String(coordinates.lng));
@@ -170,9 +175,9 @@ export async function reverseGeocodeAddress(coordinates: Coordinates): Promise<s
   }
 
   return data.display_name ?? null;
-}
+};
 
-async function enrichMissingAddresses(spots: ParkingSpot[]): Promise<ParkingSpot[]> {
+const enrichMissingAddresses = async (spots: ParkingSpot[]): Promise<ParkingSpot[]> => {
   const missingAddressIndexes = spots
     .map((spot, index) => ({ spot, index }))
     .filter(({ spot }) => !spot.address.trim())
@@ -203,9 +208,9 @@ async function enrichMissingAddresses(spots: ParkingSpot[]): Promise<ParkingSpot
   });
 
   return result;
-}
+};
 
-function buildNearbyQuery(origin: Coordinates, radiusMeters: number): string {
+const buildNearbyQuery = (origin: Coordinates, radiusMeters: number): string => {
   // Query parking as node/way/relation in one round-trip.
   return `
     [out:json][timeout:25];
@@ -216,17 +221,17 @@ function buildNearbyQuery(origin: Coordinates, radiusMeters: number): string {
     );
     out center tags;
   `;
-}
+};
 
-function buildByIdQuery(osmType: ParkingSpot['osmType'], id: string): string {
+const buildByIdQuery = (osmType: ParkingSpot['osmType'], id: string): string => {
   return `
     [out:json][timeout:20];
     ${osmType}(${id});
     out center tags;
   `;
-}
+};
 
-export async function geocodeAddress(address: string): Promise<Coordinates | null> {
+export const geocodeAddress = async (address: string): Promise<Coordinates | null> => {
   const url = new URL(apiConnections.nominatimSearchUrl);
   url.searchParams.set('q', `${address}, São Paulo, Brasil`);
   url.searchParams.set('format', 'jsonv2');
@@ -250,12 +255,12 @@ export async function geocodeAddress(address: string): Promise<Coordinates | nul
     lat: Number(first.lat),
     lng: Number(first.lon)
   };
-}
+};
 
-export async function searchNearbyParking(
+export const searchNearbyParking = async (
   origin: Coordinates,
   radiusMeters = 1500
-): Promise<ParkingSpot[]> {
+): Promise<ParkingSpot[]> => {
   const response = await requestOverpass(buildNearbyQuery(origin, radiusMeters));
 
   if (!response.ok) {
@@ -270,17 +275,17 @@ export async function searchNearbyParking(
 
   // Address enrichment runs after sorting so the list order stays stable.
   return enrichMissingAddresses(spots);
-}
+};
 
-export async function getParkingSpotById(
+export const getParkingSpotById = async (
   id: string,
   osmType: ParkingSpot['osmType'],
   origin?: Coordinates
-): Promise<ParkingSpot | null> {
+): Promise<ParkingSpot | null> => {
   const response = await requestOverpass(buildByIdQuery(osmType, id));
 
   if (!response.ok) {
-    throw new Error('Falha ao carregar detalhes do estacionamento.');
+    throw new Error('Falha ao carregar detalhes do parking.');
   }
 
   const payload = (await response.json()) as OverpassResponse;
@@ -310,4 +315,4 @@ export async function getParkingSpotById(
   }
 
   return mapped;
-}
+};

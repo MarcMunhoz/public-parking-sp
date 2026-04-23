@@ -7,12 +7,12 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: { name: 'parking-by-address' } },
       {
-        path: 'endereco',
+        path: 'address',
         name: 'parking-by-address',
         component: () => import('pages/SearchByAddressPage.vue')
       },
       {
-        path: 'estacionamento/:id',
+        path: 'parking/:id',
         name: 'parking-details',
         component: () => import('pages/ParkingDetailsPage.vue')
       }

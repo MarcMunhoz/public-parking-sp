@@ -4,7 +4,7 @@
       <div class="row items-start q-col-gutter-md">
         <div class="col-12 col-md-7">
           <p class="font-display text-h5 text-weight-bold text-slate-800 q-mb-xs">
-            Buscar estacionamento por endereço
+            Buscar parking por endereço
           </p>
           <p class="text-body2 text-slate-600 q-mb-md">
             Digite rua, bairro ou ponto de referência para consultar vagas próximas.
@@ -225,7 +225,7 @@ const progressValue = computed(() => {
   return Math.min(1, spots.value.length / 30);
 });
 
-function navigationLink(spot: ParkingSpot): string {
+const navigationLink = (spot: ParkingSpot): string => {
   const destination = `${spot.latitude},${spot.longitude}`;
   if (!currentOrigin.value) {
     return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
@@ -233,10 +233,12 @@ function navigationLink(spot: ParkingSpot): string {
 
   const origin = `${currentOrigin.value.lat},${currentOrigin.value.lng}`;
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-}
+};
 
-function goToDetails(spot: ParkingSpot) {
+const goToDetails = (spot: ParkingSpot) => {
   persistState();
+  const originLat = currentOrigin.value ? String(currentOrigin.value.lat) : undefined;
+  const originLng = currentOrigin.value ? String(currentOrigin.value.lng) : undefined;
 
   void router.push({
     name: 'parking-details',
@@ -251,18 +253,20 @@ function goToDetails(spot: ParkingSpot) {
       availability: String(spot.availability),
       lat: String(spot.latitude),
       lng: String(spot.longitude),
-      source: spot.source
+      source: spot.source,
+      originLat,
+      originLng
     }
   });
-}
+};
 
-async function loadNearby(origin: Coordinates) {
+const loadNearby = async (origin: Coordinates) => {
   // Overpass API expects radius in meters.
   spots.value = await searchNearbyParking(origin, Math.round(radiusKm * 1000));
   persistState();
-}
+};
 
-function persistState() {
+const persistState = () => {
   // Keep the last search context when navigating to details and back.
   const payload: SearchState = {
     address: address.value,
@@ -272,9 +276,9 @@ function persistState() {
     spots: spots.value
   };
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-}
+};
 
-function restoreState() {
+const restoreState = () => {
   const raw = sessionStorage.getItem(STORAGE_KEY);
   if (!raw) {
     return;
@@ -299,9 +303,9 @@ function restoreState() {
   } catch {
     sessionStorage.removeItem(STORAGE_KEY);
   }
-}
+};
 
-async function searchByAddress() {
+const searchByAddress = async () => {
   const trimmedAddress = address.value.trim();
   errorMessage.value = '';
 
@@ -332,9 +336,9 @@ async function searchByAddress() {
   } finally {
     isLoading.value = false;
   }
-}
+};
 
-async function useCurrentLocation() {
+const useCurrentLocation = async () => {
   errorMessage.value = '';
   if (!navigator.geolocation) {
     errorMessage.value = 'Seu navegador não suporta geolocalização.';
@@ -367,7 +371,7 @@ async function useCurrentLocation() {
   } finally {
     isLoadingLocation.value = false;
   }
-}
+};
 
 onMounted(() => {
   restoreState();

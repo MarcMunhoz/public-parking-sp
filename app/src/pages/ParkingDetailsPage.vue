@@ -124,7 +124,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
-import type { ParkingSpot } from 'src/components/models';
+import type { Coordinates, ParkingSpot } from 'src/components/models';
 import { getParkingSpotById } from 'src/services/parkingApi';
 
 const $q = useQuasar();
@@ -134,30 +134,37 @@ const router = useRouter();
 const isLoading = ref(false);
 const errorMessage = ref('');
 const spot = ref<ParkingSpot | null>(null);
+const queryOrigin = ref<Coordinates | null>(null);
 
 const navigationLink = computed(() => {
   if (!spot.value) {
     return '#';
   }
 
-  return `https://www.google.com/maps/dir/?api=1&destination=${spot.value.latitude},${spot.value.longitude}`;
+  const destination = `${spot.value.latitude},${spot.value.longitude}`;
+  if (!queryOrigin.value) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+  }
+
+  const origin = `${queryOrigin.value.lat},${queryOrigin.value.lng}`;
+  return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
 });
 
-function parseOsmType(value: unknown): ParkingSpot['osmType'] | null {
+const parseOsmType = (value: unknown): ParkingSpot['osmType'] | null => {
   // Accept only known OSM primitives used by Overpass queries.
   if (value === 'node' || value === 'way' || value === 'relation') {
     return value;
   }
 
   return null;
-}
+};
 
-function toNumberOrNull(value: unknown): number | null {
+const toNumberOrNull = (value: unknown): number | null => {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
-}
+};
 
-function loadFromQuery(): ParkingSpot | null {
+const loadFromQuery = (): ParkingSpot | null => {
   // Hydrate details directly from route query to avoid an extra network call.
   const id = String(route.params.id);
   const osmType = parseOsmType(route.query.osmType);
@@ -173,7 +180,7 @@ function loadFromQuery(): ParkingSpot | null {
   return {
     id,
     osmType,
-    name: String(route.query.name ?? 'Estacionamento sem nome'),
+    name: String(route.query.name ?? 'parking sem nome'),
     address: String(route.query.address ?? 'Endereço não informado'),
     distanceMeters: 0,
     distanceLabel: String(route.query.distance ?? '---'),
@@ -185,9 +192,9 @@ function loadFromQuery(): ParkingSpot | null {
     source: route.query.source === 'private' ? 'private' : 'public',
     tags: {}
   };
-}
+};
 
-async function copyAddress() {
+const copyAddress = async () => {
   if (!spot.value) {
     return;
   }
@@ -212,9 +219,16 @@ async function copyAddress() {
       message: 'Não foi possível copiar o endereço.'
     });
   }
-}
+};
 
 onMounted(async () => {
+  const originLat = toNumberOrNull(route.query.originLat);
+  const originLng = toNumberOrNull(route.query.originLng);
+  queryOrigin.value =
+    originLat === null || originLng === null
+      ? null
+      : { lat: originLat, lng: originLng };
+
   const fromQuery = loadFromQuery();
   if (fromQuery) {
     spot.value = fromQuery;
@@ -225,7 +239,7 @@ onMounted(async () => {
   const id = String(route.params.id);
   const osmType = parseOsmType(route.query.osmType);
   if (!osmType) {
-    errorMessage.value = 'Dados insuficientes para carregar os detalhes deste estacionamento.';
+    errorMessage.value = 'Dados insuficientes para carregar os detalhes deste parking.';
     return;
   }
 
@@ -235,7 +249,7 @@ onMounted(async () => {
   try {
     const loadedSpot = await getParkingSpotById(id, osmType);
     if (!loadedSpot) {
-      errorMessage.value = 'Estacionamento não encontrado.';
+      errorMessage.value = 'parking não encontrado.';
       return;
     }
 

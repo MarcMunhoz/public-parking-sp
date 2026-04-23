@@ -20,19 +20,19 @@ export const apiConnections = {
   overpassInterpreterUrl: OVERPASS_INTERPRETER_URL
 } as const;
 
-export async function requestNominatim(url: URL): Promise<Response> {
+export const requestNominatim = async (url: URL): Promise<Response> => {
   return fetch(url.toString(), {
     headers: nominatimHeaders
   });
-}
+};
 
-export async function requestOverpass(query: string): Promise<Response> {
+export const requestOverpass = async (query: string): Promise<Response> => {
   return fetch(OVERPASS_INTERPRETER_URL, {
     method: 'POST',
     headers: overpassHeaders,
     body: new URLSearchParams({ data: query })
   });
-}
+};
 
 export default boot(() => {
   // API connections are centralized here for Quasar boot-driven setup.
