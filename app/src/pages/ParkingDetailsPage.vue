@@ -1,12 +1,12 @@
 <template>
-  <q-page class="q-py-md">
+  <q-page class="tw:py-4">
     <q-btn
       flat
       rounded
       no-caps
       icon="arrow_back"
       label="Voltar"
-      class="q-mb-md text-slate-700"
+      class="tw:mb-4 tw:text-slate-700"
       @click="router.back()"
     />
 
@@ -15,22 +15,22 @@
     <q-banner
       v-if="errorMessage"
       rounded
-      class="q-mb-md bg-red-1 text-red-9"
+      class="tw:mb-4 tw:bg-red-100 tw:text-red-900"
     >
       {{ errorMessage }}
     </q-banner>
 
-    <section v-if="spot" class="glass-panel q-pa-lg">
-      <div class="row q-col-gutter-lg">
-        <div class="col-12 col-md-8">
-          <p class="font-display text-h5 text-weight-bold text-slate-800 q-mb-xs">
+    <section v-if="spot" class="glass-panel tw:p-6">
+      <div class="tw:grid tw:grid-cols-1 tw:gap-6 tw:md:grid-cols-12">
+        <div class="tw:md:col-span-8">
+          <p class="tw:mb-1 tw:font-display tw:text-4xl tw:font-bold tw:text-slate-800">
             {{ spot.name }}
           </p>
-          <p class="text-body2 text-slate-600 q-mb-md">
+          <p class="tw:mb-4 tw:text-base tw:text-slate-600">
             {{ spot.address }}
           </p>
 
-          <div class="row q-gutter-sm q-mb-md">
+          <div class="tw:mb-4 tw:flex tw:flex-wrap tw:gap-2">
             <q-badge rounded color="emerald-2" text-color="emerald-9">
               {{ spot.distanceLabel }}
             </q-badge>
@@ -46,7 +46,7 @@
             </q-badge>
           </div>
 
-          <div class="row items-center q-gutter-xs q-mb-md">
+          <div class="tw:mb-4 tw:flex tw:items-center tw:gap-1">
             <q-rating
               :model-value="spot.rating"
               size="1.2em"
@@ -56,45 +56,49 @@
               color="orange-6"
               readonly
             />
-            <span class="text-caption text-slate-600">({{ spot.rating.toFixed(1) }})</span>
+            <span class="tw:text-sm tw:text-slate-600">({{ spot.rating.toFixed(1) }})</span>
           </div>
 
-          <div class="row q-col-gutter-sm">
-            <div class="col-auto">
-              <q-btn
-                color="green-8"
-                text-color="white"
-                no-caps
-                rounded
-                unelevated
-                icon="navigation"
-                label="Navegar no mapa"
-                :href="navigationLink"
-                target="_blank"
-              />
+          <a
+            :href="navigationLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="map-preview tw:mb-4 tw:block"
+            aria-label="Abrir navegação no mapa"
+          >
+            <iframe
+              :src="mapPreviewUrl"
+              class="map-preview__frame"
+              title="Prévia do mapa do estacionamento"
+              loading="lazy"
+            />
+            <div class="map-preview__overlay">
+              <q-icon name="navigation" size="18px" />
+              <span>Navegar no mapa</span>
             </div>
-            <div class="col-auto">
-              <q-btn
-                outline
-                color="orange-7"
-                no-caps
-                rounded
-                icon="content_copy"
-                label="Copiar endereço"
-                @click="copyAddress"
-              />
-            </div>
+          </a>
+
+          <div class="tw:flex tw:flex-wrap tw:gap-3">
+            <q-btn
+              outline
+              color="orange-7"
+              no-caps
+              rounded
+              icon="content_copy"
+              label="Copiar endereço"
+              @click="copyAddress"
+            />
           </div>
         </div>
 
-        <div class="col-12 col-md-4">
-          <div class="rounded-3xl bg-gradient-to-br from-emerald-800 to-emerald-600 text-white q-pa-md q-mb-md">
-            <p class="text-caption text-white/80 q-ma-none">Disponibilidade estimada</p>
-            <p class="font-display text-h4 q-my-sm">{{ spot.availability }}</p>
-            <p class="text-caption text-white/80 q-ma-none">vagas livres</p>
+        <div class="tw:md:col-span-4 tw:md:self-center">
+          <div class="tw:mb-4 tw:rounded-3xl tw:bg-gradient-to-br tw:from-emerald-800 tw:to-emerald-600 tw:p-4 tw:text-white">
+            <p class="tw:m-0 tw:text-sm tw:text-white/80">Disponibilidade estimada</p>
+            <p class="tw:my-2 tw:font-display tw:text-5xl">{{ spot.availability }}</p>
+            <p class="tw:m-0 tw:text-sm tw:text-white/80">vagas livres</p>
           </div>
 
-          <q-list bordered separator class="rounded-borders bg-white/70">
+          <q-list bordered separator class="tw:overflow-hidden tw:rounded-2xl tw:border tw:border-slate-200 tw:bg-white/70">
             <q-item>
               <q-item-section>
                 <q-item-label caption>Tipo</q-item-label>
@@ -148,6 +152,23 @@ const navigationLink = computed(() => {
 
   const origin = `${queryOrigin.value.lat},${queryOrigin.value.lng}`;
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+});
+
+const mapPreviewUrl = computed(() => {
+  if (!spot.value) {
+    return '';
+  }
+
+  const lat = spot.value.latitude;
+  const lng = spot.value.longitude;
+  const delta = 0.0032;
+  const left = lng - delta;
+  const right = lng + delta;
+  const top = lat + delta;
+  const bottom = lat - delta;
+  const bbox = `${left},${bottom},${right},${top}`;
+  const marker = `${lat},${lng}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
 });
 
 const parseOsmType = (value: unknown): ParkingSpot['osmType'] | null => {
@@ -261,3 +282,34 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.map-preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.map-preview__frame {
+  display: block;
+  width: 100%;
+  height: 220px;
+  border: 0;
+  pointer-events: none;
+}
+
+.map-preview__overlay {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+</style>

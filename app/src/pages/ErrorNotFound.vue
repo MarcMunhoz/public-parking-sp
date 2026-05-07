@@ -1,16 +1,16 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
+  <div class="tw:flex tw:min-h-screen tw:items-center tw:justify-center tw:bg-blue-600 tw:p-4 tw:text-center tw:text-white">
     <div>
-      <div style="font-size: 30vh">
+      <div class="tw:text-[30vh] tw:leading-none">
         404
       </div>
 
-      <div class="text-h2" style="opacity:.4">
+      <div class="tw:text-4xl tw:opacity-40">
         Oops. Nothing here...
       </div>
 
       <q-btn
-        class="q-mt-xl"
+        class="tw:mt-12"
         color="white"
         text-color="blue"
         unelevated

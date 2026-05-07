@@ -1,12 +1,12 @@
 <template>
-  <q-page class="q-py-md">
-    <section class="glass-panel q-pa-lg">
-      <div class="row items-start q-col-gutter-md">
-        <div class="col-12 col-md-7">
-          <p class="font-display text-h5 text-weight-bold text-slate-800 q-mb-xs">
+  <q-page class="tw:py-4">
+    <section class="glass-panel tw:p-6">
+      <div class="tw:grid tw:grid-cols-1 tw:items-start tw:gap-4 tw:md:grid-cols-12">
+        <div class="tw:md:col-span-7">
+          <p class="tw:mb-1 tw:font-display tw:text-4xl tw:font-bold tw:text-slate-800">
             Buscar parking por endereço
           </p>
-          <p class="text-body2 text-slate-600 q-mb-md">
+          <p class="tw:mb-4 tw:text-base tw:text-slate-600">
             Digite rua, bairro ou ponto de referência para consultar vagas próximas.
           </p>
 
@@ -18,7 +18,7 @@
             color="green-8"
             bg-color="white"
             label="Ex: Avenida Paulista, 1000"
-            class="q-mb-sm"
+            class="tw:mb-2"
             @keyup.enter="searchByAddress"
           >
             <template #prepend>
@@ -26,48 +26,44 @@
             </template>
           </q-input>
 
-          <div class="row q-col-gutter-sm">
-            <div class="col-auto">
-              <q-btn
-                color="green-8"
-                text-color="white"
-                unelevated
-                no-caps
-                rounded
-                icon="search"
-                label="Buscar vagas"
-                :loading="isLoading"
-                @click="searchByAddress"
-              />
-            </div>
-            <div class="col-auto">
-              <q-btn
-                outline
-                color="orange-7"
-                no-caps
-                rounded
-                icon="near_me"
-                label="Usar localização"
-                :loading="isLoadingLocation"
-                @click="useCurrentLocation"
-              />
-            </div>
+          <div class="tw:flex tw:flex-wrap tw:gap-3">
+            <q-btn
+              color="green-8"
+              text-color="white"
+              unelevated
+              no-caps
+              rounded
+              icon="search"
+              label="Buscar vagas"
+              :loading="isLoading"
+              @click="searchByAddress"
+            />
+            <q-btn
+              outline
+              color="orange-7"
+              no-caps
+              rounded
+              icon="near_me"
+              label="Usar localização"
+              :loading="isLoadingLocation"
+              @click="useCurrentLocation"
+            />
           </div>
         </div>
 
-        <div class="col-12 col-md-5">
-          <div class="rounded-3xl bg-gradient-to-br from-emerald-800 to-emerald-600 text-white q-pa-md">
-            <p class="text-caption text-white/80 q-ma-none">Disponibilidade em tempo real</p>
-            <p class="font-display text-h6 q-my-sm">{{ spots.length }} locais encontrados</p>
+        <div class="tw:md:col-span-5">
+          <div class="tw:rounded-3xl tw:bg-gradient-to-br tw:from-emerald-800 tw:to-emerald-600 tw:p-4 tw:text-white">
+            <p class="tw:m-0 tw:text-sm tw:text-white/80">Disponibilidade em tempo real</p>
+            <p class="tw:my-2 tw:font-display tw:text-3xl">{{ spots.length }} locais encontrados</p>
             <q-linear-progress
               color="orange-4"
               track-color="white"
               rounded
               size="12px"
               :value="progressValue"
-              class="q-mb-sm"
+              class="tw:mb-2"
             />
-            <p class="text-caption text-white/80 q-ma-none">
+            <p class="tw:m-0 tw:text-sm tw:text-white/80">
               Atualizado para um raio de {{ radiusKm }} km
             </p>
           </div>
@@ -78,7 +74,7 @@
         v-if="errorMessage"
         inline-actions
         rounded
-        class="q-mt-md bg-red-1 text-red-9"
+        class="tw:mt-4 tw:bg-red-100 tw:text-red-900"
       >
         {{ errorMessage }}
       </q-banner>
@@ -86,15 +82,15 @@
       <q-banner
         v-if="locationInUseLabel"
         rounded
-        class="q-mt-sm bg-blue-1 text-blue-9"
+        class="tw:mt-2 tw:bg-blue-100 tw:text-blue-900"
       >
         Localização em uso: {{ locationInUseLabel }}
       </q-banner>
     </section>
 
-    <section class="q-mt-lg">
-      <div class="row items-center justify-between q-mb-sm">
-        <p class="font-display text-subtitle1 text-weight-bold text-slate-800 q-ma-none">
+    <section class="tw:mt-6">
+      <div class="tw:mb-2 tw:flex tw:items-center tw:justify-between">
+        <p class="tw:m-0 tw:font-display tw:text-xl tw:font-bold tw:text-slate-800">
           Estacionamentos encontrados
         </p>
         <q-chip color="orange-2" text-color="orange-9" icon="tune" square>
@@ -107,27 +103,27 @@
       <q-card
         v-if="!isLoading && spots.length === 0"
         flat
-        class="glass-panel q-pa-lg text-center text-slate-600"
+        class="glass-panel tw:p-6 tw:text-center tw:text-slate-600"
       >
         Digite um endereço para consultar estacionamentos reais próximos.
       </q-card>
 
-      <div class="column q-gutter-md">
+      <div class="tw:flex tw:flex-col tw:gap-4">
         <q-card
           v-for="spot in spots"
           :key="spot.id"
           flat
-          class="glass-panel q-pa-sm"
+          class="glass-panel tw:p-2"
         >
-          <q-card-section class="row items-center q-col-gutter-md">
-            <div class="col-8 col-sm-9">
-              <p class="text-subtitle1 text-weight-bold text-slate-800 q-ma-none">
+          <q-card-section class="tw:grid tw:grid-cols-12 tw:items-center tw:gap-4">
+            <div class="tw:col-span-8 tw:sm:col-span-9">
+              <p class="tw:m-0 tw:text-xl tw:font-bold tw:text-slate-800">
                 {{ spot.name }}
               </p>
-              <p class="text-caption text-slate-600 q-mt-xs q-mb-sm">
+              <p class="tw:mb-2 tw:mt-1 tw:text-sm tw:text-slate-600">
                 {{ spot.address }}
               </p>
-              <div class="row items-center q-gutter-sm">
+              <div class="tw:flex tw:items-center tw:gap-2">
                 <q-badge rounded color="emerald-2" text-color="emerald-9">
                   {{ spot.distanceLabel }}
                 </q-badge>
@@ -146,14 +142,14 @@
               </div>
             </div>
 
-            <div class="col-4 col-sm-3 text-right">
+            <div class="tw:col-span-4 tw:text-right tw:sm:col-span-3">
               <q-badge
                 :color="spot.availability > 20 ? 'emerald-7' : 'orange-7'"
-                class="q-mb-sm"
+                class="tw:mb-2"
               >
                 {{ spot.availability }} vagas
               </q-badge>
-              <div class="row justify-end q-gutter-xs">
+              <div class="tw:flex tw:justify-end tw:gap-1">
                 <q-btn
                   flat
                   dense
